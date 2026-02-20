@@ -9,9 +9,12 @@
  *   - transactions is array of objects:
  *     [{ id: "TXN001", type: "credit"/"debit", amount: 500,
  *        to: "Rahul", category: "food", date: "2025-01-15" }, ...]
+ * 
  *   - Skip transactions where amount is not a positive number
  *   - Skip transactions where type is not "credit" or "debit"
+ * 
  *   - Calculate (on valid transactions only):
+ * 
  *     - totalCredit: sum of all "credit" type amounts
  *     - totalDebit: sum of all "debit" type amounts
  *     - netBalance: totalCredit - totalDebit
@@ -47,5 +50,79 @@
  *   //      frequentContact: "Swiggy", allAbove100: false, hasLargeTransaction: true }
  */
 export function analyzeUPITransactions(transactions) {
-  // Your code here
-}
+  if(!Array.isArray(transactions) || transactions.length === 0) return null
+
+
+let postiveAmt = transactions.filter((e) => e.amount > 0);
+let typeAcc = postiveAmt.filter((e) => {
+  if (e.type === "credit" || e.type === "debit") {
+    return e;
+  }
+});
+
+if(postiveAmt.length === 0 || typeAcc.length === 0) return null
+
+const totalCredit = typeAcc
+  .filter((e) => e.type === "credit")
+  .reduce((sum, curr) => {
+    return sum + curr.amount;
+  }, 0);
+const totalDebit = typeAcc
+  .filter((e) => e.type === "debit")
+  .reduce((sum, curr) => {
+    return sum + curr.amount;
+  }, 0);
+
+const netBalance = totalCredit - totalDebit;
+
+const avg = typeAcc.reduce((sum, curr) => {
+  return sum + curr.amount;
+}, 0);
+
+const transactionCount = typeAcc.length;
+
+const avgTransaction = Math.round(avg / transactionCount);
+
+const highestTransaction = typeAcc.reduce((sum, curr) => {
+  return curr.amount > sum.amount ? curr : sum;
+});
+
+const categoryBreakdown = transactions.reduce((acc, curr) => {
+  if(!acc[curr.category]) {
+    acc[curr.category] = curr.amount;
+  } else {
+    acc[curr.category] += curr.amount;
+  }
+  return acc;
+}, {});
+
+const allAbove100 = typeAcc.every(e => e.amount > 100)
+const hasLargeTransaction = typeAcc.some(e => e.amount >= 5000)
+
+const frequentContact = transactions.reduce((acc, curr) => {
+  acc[curr.to] = (acc[curr.to] || 0) + 1;
+  return acc;
+}, {});
+
+let max = 0;
+let result = null;
+
+for (let t of typeAcc) {
+  if (frequentContact[t.to] > max) {
+    max = frequentContact[t.to];
+    result = t.to;
+  }
+} 
+
+return {
+  totalCredit,
+  totalDebit,
+  netBalance,
+  transactionCount,
+  avgTransaction,
+  highestTransaction,
+  categoryBreakdown,
+  frequentContact: result,
+  allAbove100,
+  hasLargeTransaction
+}}

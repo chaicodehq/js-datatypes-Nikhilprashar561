@@ -62,5 +62,84 @@
  *   // => { isValid: false, errors: { name: "...", email: "...", ... } }
  */
 export function validateForm(formData) {
-  // Your code here
+  let error = {};
+
+    if (
+    typeof formData.name !== "string" ||
+    formData.name.trim() === "" ||
+    formData.name.trim().length < 2 ||
+    formData.name.trim().length > 50
+  ) {
+    error.name = "Name must be 2-50 characters";
+  }
+
+  if (typeof formData.email !== "string") {
+    error.email = "Invalid email format";
+  } else {
+    let atIndex = formData.email.indexOf("@");
+    let lastAtIndex = formData.email.lastIndexOf("@");
+    let dotIndex = formData.email.indexOf(".", atIndex);
+
+    if (atIndex === -1 || atIndex !== lastAtIndex || dotIndex === -1) {
+      error.email = "Invalid email format";
+    }
+  }
+
+  if (typeof formData.phone !== "string") {
+    error.phone = "Invalid Indian phone number";
+  } else {
+    if (
+      formData.phone.length !== 10 ||
+      !["6", "7", "8", "9"].includes(formData.phone[0]) ||
+      /\D/.test(formData.phone)
+    ) {
+      error.phone = "Invalid Indian phone number";
+    }
+  }
+
+  let ageValue = formData.age;
+
+  if (typeof ageValue === "string") {
+    ageValue = parseInt(ageValue);
+  }
+
+  if (
+    isNaN(ageValue) ||
+    !Number.isInteger(ageValue) ||
+    ageValue < 16 ||
+    ageValue > 100
+  ) {
+    error.age = "Age must be an integer between 16 and 100";
+  }
+
+  if (
+    typeof formData.pincode !== "string" ||
+    !/^[1-9][0-9]{5}$/.test(formData.pincode)
+  ) {
+    error.pincode = "Invalid Indian pincode";
+  }
+
+  let stateValue = formData?.state ?? "";
+
+  if (typeof stateValue !== "string" || stateValue.trim() === "") {
+    error.state = "State is required";
+  }
+
+  if (!Boolean(formData.agreeTerms)) {
+    error.agreeTerms = "Must agree to terms";
+  }
+
+  let isValid;
+  if (error && Object.keys(error).length === 0) {
+    isValid = true;
+  } else {
+    isValid = false;
+  }
+
+  // console.log(error);
+
+  return {
+    isValid,
+    errors: error,
+  };
 }
